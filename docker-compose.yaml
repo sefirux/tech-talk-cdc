@@ -1,0 +1,147 @@
+#file: noinspection GrazieStyle, SpellCheckingInspection
+name: dtt
+
+networks:
+  dtt:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  kafka_secrets:
+    driver: local
+  kafka_config:
+    driver: local
+  kafka_data:
+    driver: local
+  debezium_config:
+    driver: local
+  debezium_data:
+    driver: local
+  debezium_logs:
+    driver: local
+
+services:
+  postgres_db:
+    image: postgres:17
+    container_name: postgres_db
+    restart: always
+    shm_size: 128mb
+    networks:
+      - dtt
+    ports:
+      - "5432:5432"
+    # WAL (Write-Ahead Log) es un registro secuencial donde PostgreSQL escribe
+    # TODOS los cambios de datos ANTES de aplicarlos a las tablas reales.
+    # Es un mecanismo de durabilidad y recuperación ante fallos.
+    #
+    # Debezium usa el WAL para capturar cambios en tiempo real (CDC - Change Data Capture).
+    # Con wal_level=logical, PostgreSQL incluye suficiente información en el WAL
+    # para reconstruir el estado lógico de las filas (INSERT, UPDATE, DELETE completos).
+    #
+    # Debezium lee este WAL como un "stream" de eventos y los publica a Kafka,
+    # permitiendo arquitecturas event-driven sin modificar la aplicación original.
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Postgres ejecuta todos los scripts sh y sql que pongas dentro del
+      # directorio /docker-entrypoint-initdb.d la primera vez que se levanta 😱
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+  broker:
+    image: apache/kafka:latest
+    container_name: broker
+    restart: always
+    networks:
+      - dtt
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka_secrets:/etc/kafka/secrets
+      - kafka_config:/mnt/shared/config
+      - kafka_data:/var/lib/kafka/data
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@broker:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 3
+    healthcheck:
+      test: [ "CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --version || exit 1" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+  debezium-connect:
+    image: debezium/connect:2.6
+    container_name: debezium-connect
+    restart: always
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+      broker:
+        condition: service_healthy
+    networks:
+      - dtt
+    ports:
+      - "8083:8083"
+    volumes:
+      - debezium_config:/kafka/config
+      - debezium_data:/kafka/data
+      - debezium_logs:/kafka/logs
+    environment:
+      BOOTSTRAP_SERVERS: broker:9092
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: debezium_configs
+      OFFSET_STORAGE_TOPIC: debezium_offsets
+      STATUS_STORAGE_TOPIC: debezium_statuses
+      # Factores de replicación en 1 porque tenemos un solo broker
+      CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      STATUS_STORAGE_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -sf http://localhost:8083/ || exit 1" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+  broker-ui:
+    image: obsidiandynamics/kafdrop:latest
+    container_name: broker-ui
+    restart: always
+    depends_on:
+      broker:
+        condition: service_healthy
+      debezium-connect:
+        condition: service_healthy
+    networks:
+      - dtt
+    ports:
+      - "9000:9000"
+    environment:
+      KAFKA_BROKERCONNECT: "broker:9092"
+      JVM_OPTS: "-Xms32M -Xmx64M"
+      SERVER_SERVLET_CONTEXTPATH: "/"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -sf http://localhost:9000/actuator/health || exit 1" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
