@@ -1,0 +1,55 @@
+package com.jpaz.portfolio.model;
+
+import io.micronaut.data.annotation.DateCreated;
+import io.micronaut.data.annotation.DateUpdated;
+import io.micronaut.data.annotation.GeneratedValue;
+import io.micronaut.data.annotation.Id;
+import io.micronaut.data.annotation.MappedEntity;
+import io.micronaut.serde.annotation.Serdeable;
+
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
+@Serdeable
+@MappedEntity("positions")
+public class Position {
+
+    @Id
+    @GeneratedValue
+    private UUID id;
+
+    private UUID accountId;
+    private UUID assetId;
+    private BigDecimal quantity;
+    private BigDecimal averagePrice;
+
+    @DateCreated
+    private OffsetDateTime createdAt;
+
+    @DateUpdated
+    private OffsetDateTime updatedAt;
+
+    public Position() {}
+
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+
+    public UUID getAccountId() { return accountId; }
+    public void setAccountId(UUID accountId) { this.accountId = accountId; }
+
+    public UUID getAssetId() { return assetId; }
+    public void setAssetId(UUID assetId) { this.assetId = assetId; }
+
+    public BigDecimal getQuantity() { return quantity; }
+    public void setQuantity(BigDecimal quantity) { this.quantity = quantity; }
+
+    public BigDecimal getAveragePrice() { return averagePrice; }
+    public void setAveragePrice(BigDecimal averagePrice) { this.averagePrice = averagePrice; }
+
+    public OffsetDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
+
+    public OffsetDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(OffsetDateTime updatedAt) { this.updatedAt = updatedAt; }
+}
