@@ -15,3 +15,36 @@ Content-Type: application/json
   "quantity": 2,
   "price": 80000
 }
+
+### set first pending operation id as operationId
+GET http://localhost:8080/operations/account/b2000000-0000-0000-0000-000000000001
+
+> {%
+    const operationId = response.body?.content?.filter(op => op.status === 'PENDING')?.[0]?.id;
+    client.assert(operationId !== undefined && operationId !== null, 'Pending operation not found');
+    client.global.set('operationId', operationId);
+%}
+
+### mark operation as executed
+PUT http://localhost:8080/operations/{{operationId}}
+Content-Type: application/json
+
+{
+  "status": "EXECUTED"
+}
+
+### mark operation as failed
+PUT http://localhost:8080/operations/{{operationId}}
+Content-Type: application/json
+
+{
+  "status": "FAILED"
+}
+
+### mark operation as canceled
+PUT http://localhost:8080/operations/{{operationId}}
+Content-Type: application/json
+
+{
+  "status": "CANCELLED"
+}

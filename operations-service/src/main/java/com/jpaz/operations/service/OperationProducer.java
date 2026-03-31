@@ -12,4 +12,6 @@ public interface OperationProducer {
     @Topic("operations.created")
     void sendCreated(OperationResponse operation);
 
+    @Topic("operations.updated")
+    void sendUpdated(OperationResponse response);
 }

@@ -1,5 +1,6 @@
-package com.jpaz.operations.exception;
+package com.jpaz.operations.exception.handlers;
 
+import com.jpaz.operations.exception.BadRequestException;
 import io.micronaut.context.annotation.Requires;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -11,11 +12,11 @@ import java.util.Map;
 
 @Singleton
 @Produces
-@Requires(classes = {NotFoundException.class, ExceptionHandler.class})
-public class NotFoundExceptionHandler implements ExceptionHandler<NotFoundException, HttpResponse<Map<String, String>>> {
+@Requires(classes = {BadRequestException.class, ExceptionHandler.class})
+public class BadRequestExceptionHandler implements ExceptionHandler<BadRequestException, HttpResponse<Map<String, String>>> {
 
     @Override
-    public HttpResponse<Map<String, String>> handle(HttpRequest request, NotFoundException e) {
+    public HttpResponse<Map<String, String>> handle(HttpRequest request, BadRequestException e) {
         return HttpResponse.notFound(Map.of("message", e.getMessage()));
     }
 }

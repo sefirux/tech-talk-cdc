@@ -12,8 +12,13 @@ public class OperationConsumer {
     private static final Logger log = LoggerFactory.getLogger(OperationConsumer.class);
 
     @Topic("operations.created")
-    public void accept(JsonNode payload) {
-        log.info("Event received: [{}]", payload.toPrettyString());
+    public void created(JsonNode payload) {
+        log.info("Operation created: [{}]", payload.toPrettyString());
+    }
+
+    @Topic("operations.updated")
+    public void updated(JsonNode payload) {
+        log.info("Operation updated: [{}]", payload.toPrettyString());
     }
 
 }

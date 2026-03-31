@@ -5,6 +5,7 @@ import io.micronaut.data.annotation.DateUpdated;
 import io.micronaut.data.annotation.GeneratedValue;
 import io.micronaut.data.annotation.Id;
 import io.micronaut.data.annotation.MappedEntity;
+import io.micronaut.data.annotation.Transient;
 import io.micronaut.serde.annotation.Serdeable;
 
 import java.math.BigDecimal;
@@ -60,4 +61,13 @@ public class Operation {
 
     public OffsetDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(OffsetDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    @Transient
+    public boolean isFinalStatus() {
+        if (this.status == null) {
+            return false;
+        }
+
+        return this.status.isFinalStatus();
+    }
 }
