@@ -54,6 +54,7 @@ Content-Type: application/json
     "primary.key.mode": "record_key",
     "primary.key.fields": "id",
     "delete.enabled": "true",
+    "table.name.format": "operations",
     "schema.evolution": "basic",
     "key.converter": "org.apache.kafka.connect.json.JsonConverter",
     "key.converter.schemas.enable": "true",
@@ -62,11 +63,19 @@ Content-Type: application/json
   }
 }
 
-### check source connector status
+### check source connector status — verify tasks[0].state = RUNNING
 GET http://localhost:8083/connectors/sync-source-connector/status
 
-### check sink connector status
+### check sink connector status — verify tasks[0].state = RUNNING
+### if tasks[0].state = FAILED, the trace field shows the actual error
 GET http://localhost:8083/connectors/sync-sink-connector/status
+
+### restart sink task after fixing the underlying error
+### use when tasks[0].state = FAILED
+POST http://localhost:8083/connectors/sync-sink-connector/tasks/0/restart
+
+### restart source task
+POST http://localhost:8083/connectors/sync-source-connector/tasks/0/restart
 
 ### delete both connectors
 DELETE http://localhost:8083/connectors/sync-source-connector
