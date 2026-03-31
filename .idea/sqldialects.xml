@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/critical-service/src/main/resources/db/migration/V1__create_schema.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/init.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/operations/src/main/resources/db/migration/V1__create_schema.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/portfolio/src/main/resources/db/migration/V1__create_schema.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/operations-service/src/main/resources/db/migration/V1__create_schema.sql" dialect="PostgreSQL" />
   </component>
 </project>

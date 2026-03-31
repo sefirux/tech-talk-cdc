@@ -6,10 +6,23 @@
       <list>
         <option value="$PROJECT_DIR$/operations/pom.xml" />
         <option value="$PROJECT_DIR$/portfolio/pom.xml" />
+        <option value="$PROJECT_DIR$/outbox/pom.xml" />
+        <option value="$PROJECT_DIR$/pulling/pom.xml" />
+        <option value="$PROJECT_DIR$/dual-write/pom.xml" />
+        <option value="$PROJECT_DIR$/operations-service/pom.xml" />
+        <option value="$PROJECT_DIR$/critical-service/pom.xml" />
       </list>
     </option>
+    <option name="ignoredFiles">
+      <set>
+        <option value="$PROJECT_DIR$/dual-write/pom.xml" />
+        <option value="$PROJECT_DIR$/outbox/pom.xml" />
+        <option value="$PROJECT_DIR$/portfolio/pom.xml" />
+        <option value="$PROJECT_DIR$/pulling/pom.xml" />
+      </set>
+    </option>
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="temurin-25" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" project-jdk-name="temurin-17" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
 </project>

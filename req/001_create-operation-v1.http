@@ -1,0 +1,17 @@
+### list assets
+GET http://localhost:8080/assets
+
+### list operations for account
+GET http://localhost:8080/operations/account/b2000000-0000-0000-0000-000000000001
+
+### create operation BUY BTC
+POST http://localhost:8080/operations/v1
+Content-Type: application/json
+
+{
+  "accountId": "b2000000-0000-0000-0000-000000000001",
+  "assetId": "07261f3e-2447-41a5-84e2-87811e535b2f",
+  "side": "BUY",
+  "quantity": 2,
+  "price": 80000
+}

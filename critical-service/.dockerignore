@@ -1,0 +1,6 @@
+.micronaut
+/target
+.git
+.gitignore
+node_modules
+*.log
