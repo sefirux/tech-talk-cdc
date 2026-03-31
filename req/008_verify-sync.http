@@ -1,0 +1,19 @@
+### create operation — any endpoint writes to the operations table,
+### which the sync-source-connector captures from the WAL and forwards to critical_db
+POST http://localhost:8080/operations/v1
+Content-Type: application/json
+
+{
+  "accountId": "b2000000-0000-0000-0000-000000000001",
+  "assetId": "07261f3e-2447-41a5-84e2-87811e535b2f",
+  "side": "BUY",
+  "quantity": 2,
+  "price": 80000
+}
+
+### operations in operations-service (source)
+GET http://localhost:8080/operations/account/b2000000-0000-0000-0000-000000000001
+
+### operations synced into critical_db by the JDBC Sink connector
+### Should reflect the same rows as the source above.
+GET http://localhost:8081/operations

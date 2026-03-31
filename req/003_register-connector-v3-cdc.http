@@ -1,0 +1,38 @@
+### check Debezium Connect status
+GET http://localhost:8083/
+
+### list registered connectors
+GET http://localhost:8083/connectors
+
+### register v3 connector — CDC on operations table
+### Debezium reads the WAL and publishes to topic: cdc.public.operations
+POST http://localhost:8083/connectors
+Content-Type: application/json
+
+{
+  "name": "v3-operations-cdc-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "database.hostname": "postgres_db",
+    "database.port": "5432",
+    "database.dbname": "operations_db",
+    "database.user": "postgres",
+    "database.password": "postgres",
+    "topic.prefix": "cdc",
+    "table.include.list": "public.operations",
+    "plugin.name": "pgoutput",
+    "slot.name": "v3_operations_slot",
+    "publication.name": "v3_operations_pub",
+    "snapshot.mode": "never",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false"
+  }
+}
+
+### check connector status
+GET http://localhost:8083/connectors/v3-operations-cdc-connector/status
+
+### delete connector
+DELETE http://localhost:8083/connectors/v3-operations-cdc-connector

@@ -1,0 +1,75 @@
+### list available connector plugins — verify io.debezium.connector.jdbc.JdbcSinkConnector is present
+### if not, the debezium image needs to be rebuilt (see debezium/Dockerfile)
+GET http://localhost:8083/connector-plugins
+
+### check registered connectors
+GET http://localhost:8083/connectors
+
+### STEP 1 — source connector
+### Captures changes on the operations table and publishes to sync.public.operations.
+### Separate from the v3 connector: schemas are enabled here so the JDBC Sink
+### can infer column names and types without a Schema Registry.
+POST http://localhost:8083/connectors
+Content-Type: application/json
+
+{
+  "name": "sync-source-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "database.hostname": "postgres_db",
+    "database.port": "5432",
+    "database.dbname": "operations_db",
+    "database.user": "postgres",
+    "database.password": "postgres",
+    "topic.prefix": "sync",
+    "table.include.list": "public.operations",
+    "plugin.name": "pgoutput",
+    "slot.name": "sync_operations_slot",
+    "publication.name": "sync_operations_pub",
+    "snapshot.mode": "initial",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "true",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "true"
+  }
+}
+
+### STEP 2 — sink connector
+### Reads from sync.public.operations and writes to critical_db.
+### Converters must match the source exactly (JsonConverter + schemas.enable=true)
+### so the sink can deserialize the Debezium envelope and infer column types.
+POST http://localhost:8083/connectors
+Content-Type: application/json
+
+{
+  "name": "sync-sink-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.jdbc.JdbcSinkConnector",
+    "connection.url": "jdbc:postgresql://postgres_db:5432/critical_db",
+    "connection.username": "critical_user",
+    "connection.password": "sup3rS3cr3tP4ssw0rd",
+    "dialect.name": "PostgreSqlDatabaseDialect",
+    "topics": "sync.public.operations",
+    "insert.mode": "upsert",
+    "primary.key.mode": "record_key",
+    "primary.key.fields": "id",
+    "delete.enabled": "true",
+    "schema.evolution": "basic",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "true",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "true"
+  }
+}
+
+### check source connector status
+GET http://localhost:8083/connectors/sync-source-connector/status
+
+### check sink connector status
+GET http://localhost:8083/connectors/sync-sink-connector/status
+
+### delete both connectors
+DELETE http://localhost:8083/connectors/sync-source-connector
+
+###
+DELETE http://localhost:8083/connectors/sync-sink-connector

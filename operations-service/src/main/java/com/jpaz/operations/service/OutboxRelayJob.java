@@ -4,6 +4,7 @@ import com.jpaz.operations.dto.OperationResponse;
 import com.jpaz.operations.model.EventTypes;
 import com.jpaz.operations.model.OutboxEvent;
 import com.jpaz.operations.repository.OutboxEventRepository;
+import io.micronaut.context.annotation.Requires;
 import io.micronaut.scheduling.annotation.Scheduled;
 import io.micronaut.serde.ObjectMapper;
 import jakarta.inject.Singleton;
@@ -25,7 +26,12 @@ import java.util.List;
 // re-published in the next poll cycle. Consumers must be idempotent.
 //
 // Each event is handled independently — a failure on one does not block the rest.
+//
+// This bean is only created when outbox.relay.enabled=true (application.properties).
+// When using CDC (v3/v4), set it to false: Debezium reads the outbox table from the
+// WAL and publishes to Kafka directly, so this polling relay must not run in parallel.
 @Singleton
+@Requires(property = "outbox.relay.enabled", value = "true")
 public class OutboxRelayJob {
     private static final Logger log = LoggerFactory.getLogger(OutboxRelayJob.class);
 

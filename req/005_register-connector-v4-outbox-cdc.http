@@ -1,0 +1,47 @@
+### check Debezium Connect status
+GET http://localhost:8083/
+
+### list registered connectors
+GET http://localhost:8083/connectors
+
+### register v4 connector — CDC on outbox_events table with Outbox Event Router SMT
+### Debezium reads the WAL, the SMT routes each event to its Kafka topic using the
+### event_type field (e.g. "operations.created" → topic operations.created).
+### Requires outbox.relay.enabled=false in application.properties to avoid double-publishing.
+POST http://localhost:8083/connectors
+Content-Type: application/json
+
+{
+  "name": "v4-outbox-cdc-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "database.hostname": "postgres_db",
+    "database.port": "5432",
+    "database.dbname": "operations_db",
+    "database.user": "postgres",
+    "database.password": "postgres",
+    "topic.prefix": "outbox",
+    "table.include.list": "public.outbox_events",
+    "plugin.name": "pgoutput",
+    "slot.name": "v4_outbox_slot",
+    "publication.name": "v4_outbox_pub",
+    "snapshot.mode": "never",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false",
+    "transforms": "outbox",
+    "transforms.outbox.type": "io.debezium.transforms.outbox.EventRouter",
+    "transforms.outbox.table.field.event.id": "id",
+    "transforms.outbox.table.field.event.key": "aggregate_id",
+    "transforms.outbox.table.field.event.payload": "payload",
+    "transforms.outbox.route.by.field": "event_type",
+    "transforms.outbox.route.topic.replacement": "${routedByValue}"
+  }
+}
+
+### check connector status
+GET http://localhost:8083/connectors/v4-outbox-cdc-connector/status
+
+### delete connector
+DELETE http://localhost:8083/connectors/v4-outbox-cdc-connector
