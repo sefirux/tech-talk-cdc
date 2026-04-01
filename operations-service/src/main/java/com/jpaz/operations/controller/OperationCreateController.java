@@ -22,38 +22,38 @@ public class OperationCreateController {
         this.operationCreateService = operationCreateService;
     }
 
-    // DUAL-WRITE: DB commit + Kafka publish as two separate, non-atomic operations.
-    // See OperationProcessor for a detailed explanation of the consistency risks.
+    // ESCRITURA DUAL: commit en la BD + publicación en Kafka como dos operaciones separadas y no atómicas.
+    // Ver OperationProcessor para una explicación detallada de los riesgos de consistencia.
     @Post("/v1")
     @Status(HttpStatus.CREATED)
     public OperationResponse createV1(@Body @Valid CreateOperationRequest request) {
         return operationProcessor.process(request);
     }
 
-    // OUTBOX + POLLING RELAY: operation + outbox event written in a single DB transaction.
-    // The OutboxRelayJob polls the outbox table every 5s and publishes to Kafka.
-    // See OperationCreateService#createWithOutbox for the transaction boundary.
+    // OUTBOX + RELAY POR POLLING: operación + evento de outbox escritos en una única transacción de BD.
+    // El OutboxRelayJob consulta la tabla outbox cada 5s y publica en Kafka.
+    // Ver OperationCreateService#createWithOutbox para el límite de transacción.
     @Post("/v2")
     @Status(HttpStatus.CREATED)
     public OperationResponse createV2(@Body @Valid CreateOperationRequest request) {
         return operationCreateService.createWithOutbox(request);
     }
 
-    // CDC: the app only writes to the DB — no Kafka publish from application code.
-    // Debezium reads the WAL and publishes the operations table changes to Kafka
-    // automatically. Requires the v3 connector to be registered (see connectors/v3-operations-cdc.json).
-    // The event lands on topic: cdc.public.operations (Debezium envelope format).
+    // CDC: la app solo escribe en la BD — sin publicación en Kafka desde el código de aplicación.
+    // Debezium lee el WAL y publica automáticamente los cambios de la tabla operations en Kafka.
+    // Requiere el conector v3 registrado (ver connectors/v3-operations-cdc.json).
+    // El evento llega al topic: cdc.public.operations (formato envelope de Debezium).
     @Post("/v3")
     @Status(HttpStatus.CREATED)
     public OperationResponse createV3(@Body @Valid CreateOperationRequest request) {
         return operationCreateService.create(request);
     }
 
-    // CDC + OUTBOX: same DB writes as /v2, but the relay is Debezium — not the polling job.
-    // Debezium reads inserts on outbox_events from the WAL and the Outbox Event Router SMT
-    // routes each event to its Kafka topic (operations.created, operations.updated, ...).
-    // Requires the v4 connector (connectors/v4-outbox-cdc.json) and outbox.relay.enabled=false.
-    // The event lands on the same topic as /v1 and /v2: operations.created.
+    // CDC + OUTBOX: mismas escrituras en BD que /v2, pero el relay es Debezium — no el job de polling.
+    // Debezium lee las inserciones en outbox_events desde el WAL y el SMT Outbox Event Router
+    // enruta cada evento a su topic de Kafka (operations.created, operations.updated, ...).
+    // Requiere el conector v4 (connectors/v4-outbox-cdc.json) y outbox.relay.enabled=false.
+    // El evento llega al mismo topic que /v1 y /v2: operations.created.
     @Post("/v4")
     @Status(HttpStatus.CREATED)
     public OperationResponse createV4(@Body @Valid CreateOperationRequest request) {

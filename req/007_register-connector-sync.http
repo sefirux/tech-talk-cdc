@@ -1,14 +1,14 @@
-### list available connector plugins — verify io.debezium.connector.jdbc.JdbcSinkConnector is present
-### if not, the debezium image needs to be rebuilt (see debezium/Dockerfile)
+### listar plugins de conectores disponibles — verificar que io.debezium.connector.jdbc.JdbcSinkConnector esté presente
+### si no está, la imagen de debezium debe reconstruirse (ver debezium/Dockerfile)
 GET http://localhost:8083/connector-plugins
 
-### check registered connectors
+### verificar conectores registrados
 GET http://localhost:8083/connectors
 
-### STEP 1 — source connector
-### Captures changes on the operations table and publishes to sync.public.operations.
-### Separate from the v3 connector: schemas are enabled here so the JDBC Sink
-### can infer column names and types without a Schema Registry.
+### PASO 1 — conector source
+### Captura los cambios en la tabla operations y publica en sync.public.operations.
+### Separado del conector v3: los schemas están habilitados aquí para que el JDBC Sink
+### pueda inferir nombres de columnas y tipos sin un Schema Registry.
 POST http://localhost:8083/connectors
 Content-Type: application/json
 
@@ -34,10 +34,10 @@ Content-Type: application/json
   }
 }
 
-### STEP 2 — sink connector
-### Reads from sync.public.operations and writes to critical_db.
-### Converters must match the source exactly (JsonConverter + schemas.enable=true)
-### so the sink can deserialize the Debezium envelope and infer column types.
+### PASO 2 — conector sink
+### Lee desde sync.public.operations y escribe en critical_db.
+### Los converters deben coincidir exactamente con el source (JsonConverter + schemas.enable=true)
+### para que el sink pueda deserializar el envelope de Debezium e inferir los tipos de columnas.
 POST http://localhost:8083/connectors
 Content-Type: application/json
 
@@ -63,21 +63,21 @@ Content-Type: application/json
   }
 }
 
-### check source connector status — verify tasks[0].state = RUNNING
+### verificar estado del conector source — confirmar tasks[0].state = RUNNING
 GET http://localhost:8083/connectors/sync-source-connector/status
 
-### check sink connector status — verify tasks[0].state = RUNNING
-### if tasks[0].state = FAILED, the trace field shows the actual error
+### verificar estado del conector sink — confirmar tasks[0].state = RUNNING
+### si tasks[0].state = FAILED, el campo trace muestra el error real
 GET http://localhost:8083/connectors/sync-sink-connector/status
 
-### restart sink task after fixing the underlying error
-### use when tasks[0].state = FAILED
+### reiniciar tarea del sink después de corregir el error subyacente
+### usar cuando tasks[0].state = FAILED
 POST http://localhost:8083/connectors/sync-sink-connector/tasks/0/restart
 
-### restart source task
+### reiniciar tarea del source
 POST http://localhost:8083/connectors/sync-source-connector/tasks/0/restart
 
-### delete both connectors
+### eliminar ambos conectores
 DELETE http://localhost:8083/connectors/sync-source-connector
 
 ###

@@ -1,13 +1,13 @@
-### list assets
+### listar activos
 GET http://localhost:8080/assets
 
-### list operations for account
+### listar operaciones de la cuenta
 GET http://localhost:8080/operations/account/b2000000-0000-0000-0000-000000000001
 
-### create operation BUY BTC — outbox + polling relay
-### The operation and the outbox event are written in a single DB transaction.
-### The OutboxRelayJob picks up the event every 5s and publishes to operations.created.
-### Requires: outbox.relay.enabled=true (default)
+### crear operación COMPRA BTC — outbox + relay por polling
+### La operación y el evento de outbox se escriben en una única transacción de BD.
+### El OutboxRelayJob recoge el evento cada 5s y publica en operations.created.
+### Requiere: outbox.relay.enabled=true (por defecto)
 POST http://localhost:8080/operations/v2
 Content-Type: application/json
 
@@ -19,7 +19,7 @@ Content-Type: application/json
   "price": 80000
 }
 
-### set first pending operation id as operationId
+### guardar el id de la primera operación pendiente como operationId
 GET http://localhost:8080/operations/account/b2000000-0000-0000-0000-000000000001
 
 > {%
@@ -28,7 +28,7 @@ GET http://localhost:8080/operations/account/b2000000-0000-0000-0000-00000000000
     client.global.set('operationId', operationId);
 %}
 
-### mark operation as executed
+### marcar operación como ejecutada
 PUT http://localhost:8080/operations/{{operationId}}
 Content-Type: application/json
 

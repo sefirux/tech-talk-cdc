@@ -1,15 +1,15 @@
-### list assets
+### listar activos
 GET http://localhost:8080/assets
 
-### list operations for account
+### listar operaciones de la cuenta
 GET http://localhost:8080/operations/account/b2000000-0000-0000-0000-000000000001
 
-### create operation BUY BTC — outbox + CDC
-### The operation and the outbox event are written in a single DB transaction.
-### Debezium reads the insert on outbox_events from the WAL and the Outbox Event Router
-### SMT routes the event to topic: operations.created (same as v1 and v2).
-### Requires: v4 connector registered (see 005_register-connector-v4-outbox-cdc.http)
-###           outbox.relay.enabled=false (to avoid double-publishing with the polling relay)
+### crear operación COMPRA BTC — outbox + CDC
+### La operación y el evento de outbox se escriben en una única transacción de BD.
+### Debezium lee la inserción en outbox_events desde el WAL y el SMT Outbox Event Router
+### enruta el evento al topic: operations.created (igual que v1 y v2).
+### Requiere: conector v4 registrado (ver 005_register-connector-v4-outbox-cdc.http)
+###           outbox.relay.enabled=false (para evitar publicación doble con el relay por polling)
 POST http://localhost:8080/operations/v4
 Content-Type: application/json
 
@@ -21,7 +21,7 @@ Content-Type: application/json
   "price": 80000
 }
 
-### set first pending operation id as operationId
+### guardar el id de la primera operación pendiente como operationId
 GET http://localhost:8080/operations/account/b2000000-0000-0000-0000-000000000001
 
 > {%
@@ -30,7 +30,7 @@ GET http://localhost:8080/operations/account/b2000000-0000-0000-0000-00000000000
     client.global.set('operationId', operationId);
 %}
 
-### mark operation as executed
+### marcar operación como ejecutada
 PUT http://localhost:8080/operations/{{operationId}}
 Content-Type: application/json
 

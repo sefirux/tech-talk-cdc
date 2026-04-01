@@ -6,26 +6,26 @@ import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-// DUAL-WRITE PATTERN
+// PATRÓN ESCRITURA DUAL
 //
-// This processor orchestrates two independent writes:
-//   1. A transactional writing to the database (via OperationCreateService)
-//   2. A message publication to Kafka (via OperationProducer)
+// Este procesador coordina dos escrituras independientes:
+//   1. Una escritura transaccional en la base de datos (via OperationCreateService)
+//   2. Una publicación de mensaje en Kafka (via OperationProducer)
 //
-// These two systems have no shared transaction. There is no coordination protocol
-// (like 2PC) between them. This creates a consistency window:
+// Estos dos sistemas no comparten transacción. No existe ningún protocolo de coordinación
+// (como 2PC) entre ellos. Esto genera una ventana de inconsistencia:
 //
-//   [DB commit] ---- failure here ---- [Kafka publish]
+//   [commit en BD] ---- falla aquí ---- [publicación en Kafka]
 //
-// If the process crashes, the broker is unreachable, or Kafka rejects the message
-// after the database has already committed, the event is lost permanently.
-// The critical-service will never know this operation was created.
+// Si el proceso se cae, el broker es inalcanzable, o Kafka rechaza el mensaje
+// después de que la base de datos ya confirmó, el evento se pierde definitivamente.
+// El critical-service nunca sabrá que esta operación fue creada.
 //
-// Conversely, if somehow the Kafka publication succeeds but the database commit was
-// already done and rolled back in a retry scenario, consumers could process a
-// phantom event with no corresponding record in the DB.
+// A la inversa, si la publicación en Kafka tiene éxito pero el commit en la BD
+// se revirtió en un escenario de reintento, los consumidores podrían procesar
+// un evento fantasma sin registro correspondiente en la BD.
 //
-// This is the core problem of the dual-write pattern.
+// Este es el problema central del patrón de escritura dual.
 @Singleton
 public class OperationProcessor {
     private static final Logger log = LoggerFactory.getLogger(OperationProcessor.class);
@@ -39,13 +39,13 @@ public class OperationProcessor {
     }
 
     public OperationResponse process(CreateOperationRequest request) {
-        // WRITE 1: persisted atomically within a database transaction.
-        // Once this returns, the record is committed — there is no going back.
+        // ESCRITURA 1: persistida atómicamente dentro de una transacción de base de datos.
+        // Una vez que retorna, el registro está confirmado — no hay vuelta atrás.
         OperationResponse response = operationCreateService.create(request);
 
-        // WRITE 2: fire-and-forget publish to Kafka, happening AFTER the DB commit.
-        // No atomicity guarantee with the writing above. If this fails, we have a
-        // record in the DB with no corresponding event in the broker.
+        // ESCRITURA 2: publicación fire-and-forget en Kafka, ocurre DESPUÉS del commit en la BD.
+        // Sin garantía de atomicidad con la escritura anterior. Si falla, tenemos un
+        // registro en la BD sin el evento correspondiente en el broker.
         operationProducer.sendCreated(response);
 
         log.info("Operation processed [{}]", response);

@@ -15,22 +15,22 @@ public class OutboxEvent {
     @GeneratedValue
     private UUID id;
 
-    // ID of the domain entity that originated this event (e.g. the operation ID).
+    // ID de la entidad de dominio que originó este evento (ej. el ID de la operación).
     private UUID aggregateId;
 
-    // Identifies what happened (e.g. "operation.created").
-    // The relay uses this to route the event to the correct Kafka topic.
+    // Identifica qué ocurrió (ej. "operation.created").
+    // El relay usa este campo para enrutar el evento al topic de Kafka correcto.
     private String eventType;
 
-    // JSON-serialized payload. Stored as text so the outbox table stays
-    // schema-agnostic — it doesn't need to know about domain types.
+    // Payload serializado en JSON. Se almacena como texto para que la tabla outbox
+    // sea agnóstica al esquema — no necesita conocer los tipos de dominio.
     private String payload;
 
     @DateCreated
     private OffsetDateTime createdAt;
 
-    // Null until the relay successfully publishes the event to Kafka.
-    // The relay sets this field to signal that the event has been delivered.
+    // Null hasta que el relay publique exitosamente el evento en Kafka.
+    // El relay actualiza este campo para indicar que el evento fue entregado.
     private OffsetDateTime processedAt;
 
     public OutboxEvent() {}

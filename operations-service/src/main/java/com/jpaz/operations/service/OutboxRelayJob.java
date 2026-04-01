@@ -14,22 +14,22 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 
-// Relay that bridges the outbox table with Kafka.
+// Relay que conecta la tabla outbox con Kafka.
 //
-// This is the second half of the outbox pattern. It polls for events that were
-// committed to the DB (via OperationCreateService#createWithOutbox) but not yet
-// published to Kafka, publishes them, and marks them as processed.
+// Es la segunda mitad del patrón outbox. Consulta los eventos que fueron
+// confirmados en la BD (via OperationCreateService#createWithOutbox) pero aún no
+// publicados en Kafka, los publica y los marca como procesados.
 //
-// Delivery guarantee: at-least-once.
-// The event is marked as processed only AFTER a successful publication. If the process
-// crashes between the publication and the markAsProcessed call, the event will be
-// re-published in the next poll cycle. Consumers must be idempotent.
+// Garantía de entrega: al menos una vez (at-least-once).
+// El evento se marca como procesado solo DESPUÉS de una publicación exitosa. Si el proceso
+// falla entre la publicación y la llamada a markAsProcessed, el evento se
+// volverá a publicar en el próximo ciclo de polling. Los consumidores deben ser idempotentes.
 //
-// Each event is handled independently — a failure on one does not block the rest.
+// Cada evento se maneja de forma independiente — un fallo en uno no bloquea al resto.
 //
-// This bean is only created when outbox.relay.enabled=true (application.properties).
-// When using CDC (v3/v4), set it to false: Debezium reads the outbox table from the
-// WAL and publishes to Kafka directly, so this polling relay must not run in parallel.
+// Este bean solo se crea cuando outbox.relay.enabled=true (application.properties).
+// Al usar CDC (v3/v4), poner en false: Debezium lee la tabla outbox desde el
+// WAL y publica en Kafka directamente, por lo que este relay por polling no debe ejecutarse en paralelo.
 @Singleton
 @Requires(property = "outbox.relay.enabled", value = "true")
 public class OutboxRelayJob {
@@ -61,9 +61,9 @@ public class OutboxRelayJob {
                 outboxEventRepository.markAsProcessed(event.getId());
                 log.info("Outbox event relayed [id={}, eventType={}]", event.getId(), event.getEventType());
             } catch (Exception e) {
-                // Log and continue — don't let one failing event block the rest.
-                // The event will be retried in the next poll cycle since processedAt
-                // remains null.
+                // Registrar y continuar — no dejar que un evento fallido bloquee al resto.
+                // El evento se reintentará en el próximo ciclo de polling ya que processedAt
+                // permanece null.
                 log.error("Failed to relay outbox event [id={}, eventType={}]", event.getId(), event.getEventType(), e);
             }
         }

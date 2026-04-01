@@ -1,11 +1,11 @@
-### check Debezium Connect status
+### verificar estado de Debezium Connect
 GET http://localhost:8083/
 
-### list registered connectors
+### listar conectores registrados
 GET http://localhost:8083/connectors
 
-### register v3 connector — CDC on operations table
-### Debezium reads the WAL and publishes to topic: cdc.public.operations
+### registrar conector v3 — CDC sobre la tabla operations
+### Debezium lee el WAL y publica en el topic: cdc.public.operations
 POST http://localhost:8083/connectors
 Content-Type: application/json
 
@@ -27,12 +27,16 @@ Content-Type: application/json
     "key.converter": "org.apache.kafka.connect.json.JsonConverter",
     "key.converter.schemas.enable": "false",
     "value.converter": "org.apache.kafka.connect.json.JsonConverter",
-    "value.converter.schemas.enable": "false"
+    "value.converter.schemas.enable": "false",
+    "transforms": "unwrap",
+    "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+    "transforms.unwrap.drop.tombstones": "false",
+    "transforms.unwrap.add.fields": "op"
   }
 }
 
-### check connector status
+### verificar estado del conector
 GET http://localhost:8083/connectors/v3-operations-cdc-connector/status
 
-### delete connector
+### eliminar conector
 DELETE http://localhost:8083/connectors/v3-operations-cdc-connector

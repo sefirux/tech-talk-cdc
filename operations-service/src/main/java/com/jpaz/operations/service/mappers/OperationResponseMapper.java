@@ -6,7 +6,7 @@ import com.jpaz.operations.model.Operation;
 public class OperationResponseMapper {
 
     private OperationResponseMapper() {
-        // empty constructor
+        // constructor vacío
     }
 
     public static OperationResponse map(Operation op) {

@@ -1,5 +1,5 @@
-### create operation — any endpoint writes to the operations table,
-### which the sync-source-connector captures from the WAL and forwards to critical_db
+### crear operación — cualquier endpoint escribe en la tabla operations,
+### que el sync-source-connector captura desde el WAL y reenvía a critical_db
 POST http://localhost:8080/operations/v1
 Content-Type: application/json
 
@@ -11,9 +11,9 @@ Content-Type: application/json
   "price": 80000
 }
 
-### operations in operations-service (source)
+### operaciones en operations-service (source)
 GET http://localhost:8080/operations/account/b2000000-0000-0000-0000-000000000001
 
-### operations synced into critical_db by the JDBC Sink connector
-### Should reflect the same rows as the source above.
+### operaciones sincronizadas en critical_db por el JDBC Sink connector
+### Deben reflejar las mismas filas que el source de arriba.
 GET http://localhost:8081/operations

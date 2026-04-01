@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory;
 public class OperationConsumer {
     private static final Logger log = LoggerFactory.getLogger(OperationConsumer.class);
 
-    // /v1 (dual-write), /v2 (outbox + polling relay), /v4 (outbox + CDC):
-    // all three publish the same OperationResponse JSON to this topic.
+    // /v1 (escritura dual), /v2 (outbox + relay por polling), /v4 (outbox + CDC):
+    // los tres publican el mismo JSON OperationResponse en este topic.
     @Topic("operations.created")
     public void created(JsonNode payload) {
         log.info("Operation created: [{}]", payload.toPrettyString());
@@ -23,12 +23,13 @@ public class OperationConsumer {
         log.info("Operation updated: [{}]", payload.toPrettyString());
     }
 
-    // /v3 (CDC pure): Debezium publishes WAL changes to this topic as a Debezium
-    // envelope (op + before/after). The table sync to critical_db is handled entirely
-    // by the JDBC Sink connector — no application code involved.
+    // /v3 (solo CDC): Debezium publica los cambios del WAL en este topic.
+    // El SMT ExtractNewRecordState elimina el envelope y deja solo los campos de la fila,
+    // más el campo __op agregado (c=create, u=update, d=delete).
+    // La sincronización a critical_db la maneja íntegramente el JDBC Sink connector.
     @Topic("cdc.public.operations")
-    public void cdcOperation(JsonNode envelope) {
-        log.info("CDC operation [op={}]: [{}]", envelope.path("op").asText(), envelope.path("after").toPrettyString());
+    public void cdcOperation(JsonNode operation) {
+        log.info("CDC operation [op={}]: [{}]", operation.path("__op").asText(), operation.toPrettyString());
     }
 
 }

@@ -32,10 +32,10 @@ public class OperationCreateService {
         this.outboxService = outboxService;
     }
 
-    // Used by the dual-write path (/v1).
-    // The @Transactional boundary ends here — the record is committed before this method
-    // returns. Whatever happens after this call (e.g., publishing to Kafka in
-    // OperationProcessor) is outside this transaction and therefore not atomic with it.
+    // Utilizado por el flujo de escritura dual (/v1).
+    // El límite @Transactional termina aquí — el registro se confirma antes de que este método
+    // retorne. Todo lo que ocurra después de esta llamada (ej. publicar en Kafka desde
+    // OperationProcessor) está fuera de esta transacción y por lo tanto no es atómico con ella.
     @Transactional
     public OperationResponse create(CreateOperationRequest request) {
         if (!accountRepository.existsById(request.accountId())) {
@@ -61,17 +61,17 @@ public class OperationCreateService {
         return response;
     }
 
-    // Used by the outbox path (/v2).
-    // This single transaction writes both the operation record and the outbox event
-    // atomically. Either both are committed or neither is — the DB guarantees this.
+    // Utilizado por el flujo de outbox (/v2).
+    // Esta única transacción escribe tanto el registro de la operación como el evento de outbox
+    // de forma atómica. O ambos se confirman o ninguno — la BD lo garantiza.
     //
-    // The Kafka publication is decoupled entirely from this call: a relay process will
-    // later read pending outbox events and publish them. The application no longer
-    // writes directly to two systems at the same time.
+    // La publicación en Kafka está completamente desacoplada de esta llamada: un proceso relay
+    // leerá luego los eventos de outbox pendientes y los publicará. La aplicación ya no
+    // escribe directamente en dos sistemas al mismo tiempo.
     //
-    // Note: calling create() here is an internal (non-proxied) call, so its own
-    // @Transactional annotation is a no-op. This method's transaction is the one
-    // that controls the boundary for both writes.
+    // Nota: llamar a create() aquí es una llamada interna (sin proxy), por lo que su propia
+    // anotación @Transactional no tiene efecto. La transacción de este método es la que
+    // controla el límite para ambas escrituras.
     @Transactional
     public OperationResponse createWithOutbox(CreateOperationRequest request) {
         OperationResponse response = create(request);

@@ -1,13 +1,13 @@
-### list assets
+### listar activos
 GET http://localhost:8080/assets
 
-### list operations for account
+### listar operaciones de la cuenta
 GET http://localhost:8080/operations/account/b2000000-0000-0000-0000-000000000001
 
-### create operation BUY BTC — CDC puro
-### The app only writes to the DB. Debezium reads the WAL and publishes the change
-### to topic: cdc.public.operations (Debezium envelope with "after" field).
-### Requires: v3 connector registered (see 003_register-connector-v3-cdc.http)
+### crear operación COMPRA BTC — CDC puro
+### La app solo escribe en la BD. Debezium lee el WAL y publica el cambio
+### en el topic: cdc.public.operations (envelope de Debezium con campo "after").
+### Requiere: conector v3 registrado (ver 003_register-connector-v3-cdc.http)
 POST http://localhost:8080/operations/v3
 Content-Type: application/json
 
@@ -19,7 +19,7 @@ Content-Type: application/json
   "price": 80000
 }
 
-### set first pending operation id as operationId
+### guardar el id de la primera operación pendiente como operationId
 GET http://localhost:8080/operations/account/b2000000-0000-0000-0000-000000000001
 
 > {%
@@ -28,7 +28,7 @@ GET http://localhost:8080/operations/account/b2000000-0000-0000-0000-00000000000
     client.global.set('operationId', operationId);
 %}
 
-### mark operation as executed
+### marcar operación como ejecutada
 PUT http://localhost:8080/operations/{{operationId}}
 Content-Type: application/json
 

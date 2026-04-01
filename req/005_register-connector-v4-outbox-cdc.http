@@ -1,13 +1,13 @@
-### check Debezium Connect status
+### verificar estado de Debezium Connect
 GET http://localhost:8083/
 
-### list registered connectors
+### listar conectores registrados
 GET http://localhost:8083/connectors
 
-### register v4 connector — CDC on outbox_events table with Outbox Event Router SMT
-### Debezium reads the WAL, the SMT routes each event to its Kafka topic using the
-### event_type field (e.g. "operations.created" → topic operations.created).
-### Requires outbox.relay.enabled=false in application.properties to avoid double-publishing.
+### registrar conector v4 — CDC sobre la tabla outbox_events con el SMT Outbox Event Router
+### Debezium lee el WAL, el SMT enruta cada evento a su topic de Kafka usando el
+### campo event_type (ej. "operations.created" → topic operations.created).
+### Requiere outbox.relay.enabled=false en application.properties para evitar publicación doble.
 POST http://localhost:8083/connectors
 Content-Type: application/json
 
@@ -40,8 +40,8 @@ Content-Type: application/json
   }
 }
 
-### check connector status
+### verificar estado del conector
 GET http://localhost:8083/connectors/v4-outbox-cdc-connector/status
 
-### delete connector
+### eliminar conector
 DELETE http://localhost:8083/connectors/v4-outbox-cdc-connector

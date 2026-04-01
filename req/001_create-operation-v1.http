@@ -1,10 +1,10 @@
-### list assets
+### listar activos
 GET http://localhost:8080/assets
 
-### list operations for account
+### listar operaciones de la cuenta
 GET http://localhost:8080/operations/account/b2000000-0000-0000-0000-000000000001
 
-### create operation BUY BTC
+### crear operación COMPRA BTC
 POST http://localhost:8080/operations/v1
 Content-Type: application/json
 
@@ -16,7 +16,7 @@ Content-Type: application/json
   "price": 80000
 }
 
-### set first pending operation id as operationId
+### guardar el id de la primera operación pendiente como operationId
 GET http://localhost:8080/operations/account/b2000000-0000-0000-0000-000000000001
 
 > {%
@@ -25,7 +25,7 @@ GET http://localhost:8080/operations/account/b2000000-0000-0000-0000-00000000000
     client.global.set('operationId', operationId);
 %}
 
-### mark operation as executed
+### marcar operación como ejecutada
 PUT http://localhost:8080/operations/{{operationId}}
 Content-Type: application/json
 
@@ -33,7 +33,7 @@ Content-Type: application/json
   "status": "EXECUTED"
 }
 
-### mark operation as failed
+### marcar operación como fallida
 PUT http://localhost:8080/operations/{{operationId}}
 Content-Type: application/json
 
@@ -41,7 +41,7 @@ Content-Type: application/json
   "status": "FAILED"
 }
 
-### mark operation as canceled
+### marcar operación como cancelada
 PUT http://localhost:8080/operations/{{operationId}}
 Content-Type: application/json
 

@@ -10,10 +10,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.UUID;
 
-// Responsible solely for persisting outbox events to the database.
-// This service has no knowledge of Kafka — it writes to the DB only.
-// The relay process (not implemented here) is responsible for reading
-// pending events and publishing them to the broker.
+// Responsable únicamente de persistir eventos de outbox en la base de datos.
+// Este servicio no tiene conocimiento de Kafka — solo escribe en la BD.
+// El proceso relay (no implementado aquí) es el responsable de leer
+// los eventos pendientes y publicarlos en el broker.
 @Singleton
 public class OutboxService {
     private static final Logger log = LoggerFactory.getLogger(OutboxService.class);
